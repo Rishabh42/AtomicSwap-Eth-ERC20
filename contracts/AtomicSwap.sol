@@ -1,6 +1,6 @@
 pragma solidity >=0.4.22 <0.6.0;
 
-contract Atomicswap {
+contract AtomicSwap {
 
     struct Swap {
         uint256 sTimestamp;

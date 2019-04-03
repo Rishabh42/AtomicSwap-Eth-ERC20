@@ -1,5 +1,5 @@
-var ERC20 = artifacts.require("./ERC20.sol");
+var AtomicSwap = artifacts.require("./AtomicSwap.sol");
 
 module.exports = function(deployer){
-  deployer.deploy(ERC20);
+  deployer.deploy(AtomicSwap);
 };
