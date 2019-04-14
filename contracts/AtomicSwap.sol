@@ -1,31 +1,69 @@
-pragma solidity >=0.4.22 <0.6.0;
+pragma solidity ^0.4.18;
+
+import "./ERC20.sol";
 
 contract AtomicSwap {
 
-    struct Swap {
-        uint256 sTimestamp;
-        uint256 refundTime;
-        uint256 initiatorValue;
-        uint256 participantValue;
-        address initiator;
-        address participant;
-        bytes32 key;
-        bytes32 hashedkey;
-        bool emptied;
-    }
+  struct Swap {
+    address ethHolder;
+    uint256 erc20Amount;
+    address erc20Holder;
+    address erc20ContractAddress;
+    uint256 value;
+  }
 
-    mapping(bytes32 => Swap) public swaps;
+  enum States {
+    OPEN, CLOSED, EXPIRED
+  }
 
-    modifier isInitiator(bytes32 _hashedKey) {
-	    require(msg.sender == swaps[_hashedKey].initiator);
-	    _;
-	}
+  modifier openSwaps(bytes32 sID) {
+    require (swapStates[sID] == States.OPEN);
+    _;
+  }
 
-	modifier isRedeemable(bytes32 _hashedkey, bytes memory _key) {
-	    require(keccak256(_key) == _hashedkey);
-		require(block.timestamp < swaps[_hashedkey].sTimestamp + swaps[_hashedkey].refundTime);
-	    require(swaps[_hashedkey].emptied == false);
-	    _;
-	}
+  event Open(bytes32 sID, address _closeTrader);
+  event Close(bytes32 sID);
+  event Expire(bytes32 sID);
+
+  mapping (bytes32 => Swap) private swaps;
+  mapping (bytes32 => States) private swapStates;
+
+  function open(bytes32 sID, uint256 _erc20Amount, address _erc20Holder, address _erc20ContractAddress) public payable {
+
+    Swap memory swap = Swap({
+      ethHolder: msg.sender,
+      value: msg.value,
+      erc20Amount: _erc20Amount,
+      erc20Holder: _erc20Holder,
+      erc20ContractAddress: _erc20ContractAddress
+    });
+    swaps[sID] = swap;
+    swapStates[sID] = States.OPEN;
+
+    Open(sID, _erc20Holder);
+  }
+
+  function close(bytes32 sID) public openSwaps(sID) {
+
+    Swap memory swap = swaps[sID];
+    swapStates[sID] = States.CLOSED;
+
+    ERC20 erc20Contract = ERC20(swap.erc20ContractAddress);
+    require(swap.erc20Amount <= erc20Contract.allowance(swap.erc20Holder, address(this)));
+    require(erc20Contract.transferFrom(swap.erc20Holder, swap.ethHolder, swap.erc20Amount));
+
+    swap.erc20Holder.transfer(swap.value);
+
+    Close(sID);
+  }
+
+  function expire(bytes32 sID) public openSwaps(sID) {
+
+    Swap memory swap = swaps[sID];
+    swapStates[sID] = States.EXPIRED;
+
+    swap.ethHolder.transfer(swap.value);
+    Expire(sID);
+  }
 
 }
