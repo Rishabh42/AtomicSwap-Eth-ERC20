@@ -2,8 +2,8 @@ const atomicSwap = artifacts.require("./AtomicSwap.sol");
 const testToken = artifacts.require("./testToken.sol");
 
 contract('AtomicSwap', (accounts) => {
-  const alice = accounts[1];
-  const bob = accounts[2];
+  const alice = accounts[2];
+  const bob = accounts[3];
   const sID_swap = "0x41f6c6fbdfd4184172d61b390922270db087519137c43d3052fbad33876964f7";
   const sID_expiry = "0x923dbb72ea83e6a61a4b042fdc0133de7461f42ac67fef11db850e984e618d8e";
 
