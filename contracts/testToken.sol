@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity >=0.4.22 <0.6.0;
 
 contract TokenInterface {
 	function _transfer(address _from, address _to, uint256 _value) internal returns (bool);
@@ -8,8 +8,8 @@ contract TokenInterface {
 	function burn(uint256 _value) public returns (bool);
 	function burnFrom(address _from, uint256 _value) public returns (bool);
 	function approve(address _spender, uint256 _value) public returns (bool);
-	function balanceOf(address _owner) public constant returns (uint256);
-	function allowance(address _owner, address _spender) public constant returns (uint256);
+	function balanceOf(address _owner) public view returns (uint256);
+	function allowance(address _owner, address _spender) public view returns (uint256);
 
 	event Transfer(address _from, address _to, uint256 _value);
 	event Burn(address indexed _from, uint256 _value);
@@ -20,21 +20,21 @@ contract testToken is TokenInterface {
 	string public name = "MyToken";
 	string public symbol = "MT";
 	uint8 public decimals = 18;
-  uint256 public totalSupply = 100000 * 10 ** uint256(decimals);
+    uint256 public totalSupply = 100000 * 10 ** uint256(decimals);
 
 	mapping (address => uint256) public balances;
 	mapping (address => mapping (address => uint256)) public allowed;
 
-	function testToken() public {
+	constructor () public {
 		balances[msg.sender] = totalSupply;
   }
 
 	// Transfer amount from one account to another (may require approval)
 	function _transfer(address _from, address _to, uint256 _value) internal returns (bool) {
-		require(_to != 0x0 && balances[_from] >= _value && _value > 0);
+		require(balances[_from] >= _value && _value > 0);
 		balances[_from] -= _value;
 		balances[_to] += _value;
-		Transfer(_from, _to, _value);
+		emit Transfer(_from, _to, _value);
 		return true;
 	}
 
@@ -53,7 +53,7 @@ contract testToken is TokenInterface {
 		require(balances[_from] >= _value && _value > 0);
 		balances[_from] -= _value;
 		totalSupply -= _value;
-		Burn(_from, _value);
+		emit Burn(_from, _value);
 		return true;
 	}
 
@@ -70,17 +70,17 @@ contract testToken is TokenInterface {
 	// Approve spender from owner's account
 	function approve(address _spender, uint256 _value) public returns (bool) {
 		allowed[msg.sender][_spender] = _value;
-		Approval(msg.sender, _spender, _value);
+		emit Approval(msg.sender, _spender, _value);
 		return true;
 	}
 
 	// Return balance
-	function balanceOf(address _owner) public constant returns (uint256) {
+	function balanceOf(address _owner) public view returns (uint256) {
 		return balances[_owner];
 	}
 
 	// Return allowance
-	function allowance(address _owner, address _spender) public constant returns (uint256) {
+	function allowance(address _owner, address _spender) public view returns (uint256) {
 		return allowed[_owner][_spender];
 	}
 }

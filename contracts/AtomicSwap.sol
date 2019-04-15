@@ -1,13 +1,13 @@
-pragma solidity ^0.4.18;
+pragma solidity >=0.4.22 <0.6.0;
 
 import "./ERC20.sol";
 
 contract AtomicSwap {
 
   struct Swap {
-    address initiatorEth;
+    address payable initiatorEth;
     uint256 erc20V;
-    address participantERC20;
+    address payable participantERC20;
     address erc20ContractAddress;
     uint256 value;
   }
@@ -28,7 +28,7 @@ contract AtomicSwap {
   mapping (bytes32 => Swap) private swaps;
   mapping (bytes32 => States) private swapStates;
 
-  function open(bytes32 sID, uint256 _erc20V, address _participantERC20, address _erc20ContractAddress) public payable {
+  function open(bytes32 sID, uint256 _erc20V, address payable _participantERC20, address payable _erc20ContractAddress) public payable {
 
     Swap memory swap = Swap({
       initiatorEth: msg.sender,
@@ -40,7 +40,7 @@ contract AtomicSwap {
     swaps[sID] = swap;
     swapStates[sID] = States.OPEN;
 
-    Open(sID, _participantERC20);
+   emit Open(sID, _participantERC20);
   }
 
   function close(bytes32 sID) public openSwaps(sID) {
@@ -54,7 +54,7 @@ contract AtomicSwap {
 
     swap.participantERC20.transfer(swap.value);
 
-    Close(sID);
+    emit Close(sID);
   }
 
   function expire(bytes32 sID) public openSwaps(sID) {
@@ -63,7 +63,7 @@ contract AtomicSwap {
     swapStates[sID] = States.EXPIRED;
 
     swap.initiatorEth.transfer(swap.value);
-    Expire(sID);
+    emit Expire(sID);
   }
 
 }
