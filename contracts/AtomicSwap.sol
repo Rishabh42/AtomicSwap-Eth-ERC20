@@ -6,7 +6,7 @@ contract AtomicSwap {
 
   struct Swap {
     address ethHolder;
-    uint256 erc20Amount;
+    uint256 erc20V;
     address erc20Holder;
     address erc20ContractAddress;
     uint256 value;
@@ -28,12 +28,12 @@ contract AtomicSwap {
   mapping (bytes32 => Swap) private swaps;
   mapping (bytes32 => States) private swapStates;
 
-  function open(bytes32 sID, uint256 _erc20Amount, address _erc20Holder, address _erc20ContractAddress) public payable {
+  function open(bytes32 sID, uint256 _erc20V, address _erc20Holder, address _erc20ContractAddress) public payable {
 
     Swap memory swap = Swap({
       ethHolder: msg.sender,
       value: msg.value,
-      erc20Amount: _erc20Amount,
+      erc20V: _erc20V,
       erc20Holder: _erc20Holder,
       erc20ContractAddress: _erc20ContractAddress
     });
@@ -49,8 +49,8 @@ contract AtomicSwap {
     swapStates[sID] = States.CLOSED;
 
     ERC20 erc20Contract = ERC20(swap.erc20ContractAddress);
-    require(swap.erc20Amount <= erc20Contract.allowance(swap.erc20Holder, address(this)));
-    require(erc20Contract.transferFrom(swap.erc20Holder, swap.ethHolder, swap.erc20Amount));
+    require(swap.erc20V <= erc20Contract.allowance(swap.erc20Holder, address(this)));
+    require(erc20Contract.transferFrom(swap.erc20Holder, swap.ethHolder, swap.erc20V));
 
     swap.erc20Holder.transfer(swap.value);
 
