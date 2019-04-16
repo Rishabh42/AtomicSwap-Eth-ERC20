@@ -31,7 +31,7 @@ contract testToken is TokenInterface {
 
 	// Transfer amount from one account to another (may require approval)
 	function _transfer(address _from, address _to, uint256 _value) internal returns (bool) {
-		require(balances[_from] >= _value && _value > 0);
+		require(_to != address(0) && balances[_from] >= _value && _value > 0);
 		balances[_from] -= _value;
 		balances[_to] += _value;
 		emit Transfer(_from, _to, _value);
