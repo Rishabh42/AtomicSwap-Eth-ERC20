@@ -19,8 +19,8 @@ contract TokenInterface {
 contract testToken is TokenInterface {
 	string public name = "MyToken";
 	string public symbol = "MT";
-	uint8 public decimals = 18;
-    uint256 public totalSupply = 100000 * 10 ** uint256(decimals);
+	uint8 public decimals = 1;
+  uint256 public totalSupply = 100000;
 
 	mapping (address => uint256) public balances;
 	mapping (address => mapping (address => uint256)) public allowed;
