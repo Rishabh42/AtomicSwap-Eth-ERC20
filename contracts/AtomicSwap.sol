@@ -43,11 +43,6 @@ contract AtomicSwap {
    emit Open(sID, _participantERC20);
   }
 
-  function checkTrade(bytes32 _swapID) public view returns (uint256 value, uint256 erc20V, address participantERC20, address erc20ContractAddress) {
-    Swap memory swap = swaps[_swapID];
-    return  (swap.value, swap.erc20V, swap.participantERC20, swap.erc20ContractAddress);
-  }
-
   function close(bytes32 sID) public openSwaps(sID) {
 
     Swap memory swap = swaps[sID];
@@ -55,7 +50,7 @@ contract AtomicSwap {
 
     ERC20 erc20Contract = ERC20(swap.erc20ContractAddress);
     require(swap.erc20V <= erc20Contract.allowance(swap.participantERC20, address(this)));
-    require(erc20Contract.transferFrom(swap.participantERC20, swap.initiatorEth, swap.erc20V));
+    erc20Contract.transferFrom(swap.participantERC20, swap.initiatorEth, swap.erc20V);
 
     swap.participantERC20.transfer(swap.value);
 
