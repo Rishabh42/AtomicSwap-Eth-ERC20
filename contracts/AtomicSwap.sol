@@ -28,8 +28,8 @@ contract AtomicSwap {
   mapping (bytes32 => Swap) private swaps;
   mapping (bytes32 => States) private swapStates;
 
-  function open(bytes32 sID, uint256 _erc20V, address payable _participantERC20, address payable _erc20ContractAddress) public payable {
-
+  function open(bytes32 sID, uint256 _erc20V, address payable _participantERC20, address payable _erc20ContractAddress) public payable {  
+    // Store the details of the swap.
     Swap memory swap = Swap({
       initiatorEth: msg.sender,
       value: msg.value,
@@ -44,26 +44,28 @@ contract AtomicSwap {
   }
 
   function close(bytes32 sID) public openSwaps(sID) {
-
+    // Close open swap
     Swap memory swap = swaps[sID];
     swapStates[sID] = States.CLOSED;
 
+    // Transfer the ERC20 funds from the ERC20 participant to the ETH participant.
     ERC20 erc20Contract = ERC20(swap.erc20ContractAddress);
     require(swap.erc20V <= erc20Contract.allowance(swap.participantERC20, address(this)));
     erc20Contract.transferFrom(swap.participantERC20, swap.initiatorEth, swap.erc20V);
-
+    
+    // Transfer the ETH funds from to the ERC20 participant.
     swap.participantERC20.transfer(swap.value);
 
     emit Close(sID);
   }
 
   function expire(bytes32 sID) public openSwaps(sID) {
-
+    // Function to expire the swap.
     Swap memory swap = swaps[sID];
     swapStates[sID] = States.EXPIRED;
-
+    
+    // Transfer the ETH value from back to the ETH participant.
     swap.initiatorEth.transfer(swap.value);
     emit Expire(sID);
   }
-
 }
